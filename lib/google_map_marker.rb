@@ -7,6 +7,8 @@ class GoogleMapMarker
                 :lat,
                 :lng,
                 :html,
+                :marker_icon_path,
+                :marker_hover_text,
                 :map,
                 :icon
                 
@@ -40,7 +42,17 @@ class GoogleMapMarker
     
     # If a icon is specified, use it in marker creation.
     i = ", #{icon.dom_id}" if icon
+    h = ", title: '#{marker_hover_text}'" if marker_hover_text
     
+    i = ", { icon: new GIcon( G_DEFAULT_ICON, '#{marker_icon_path}')#{h}}" if marker_icon_path
+
+puts i
+
+    # js << "map.addOverlay( marker = new GMarker( new GLatLng(#{lat}, #{lng})), { "
+    # js << "  icon: new GIcon( G_DEFAULT_ICON, '#{marker_icon_path}' ), "
+    # js << "  title: '#{marker_hover_text}'"
+    # js << "} ) );"			
+		
     js << "#{dom_id} = new GMarker(new GLatLng(#{lat}, #{lng})#{i});"
     
     if self.html
@@ -51,4 +63,5 @@ class GoogleMapMarker
     
     return js.join("\n")
   end
+
 end

@@ -17,8 +17,7 @@ class GoogleMap
   def to_html
     html = []
     
-    html << "<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=#{GOOGLE_APPLICATION_ID}' type='text/javascript'></script>"
-    
+    html << "<script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=#{GOOGLE_APPLICATION_ID}' type='text/javascript'></script>"    
     html << "<script type=\"text/javascript\">\n/* <![CDATA[ */\n"  
     html << to_js
     html << "/* ]]> */</script> "
@@ -68,6 +67,7 @@ class GoogleMap
     js << "    initialize_google_map_#{dom_id}();" 
     js << "  }"
     js << "}"
+    
     # Unload the map on window load preserving anything already on window.onunload.
     #js << "if (typeof window.onunload != 'function') {"
     #js << "  window.onunload = GUnload();"

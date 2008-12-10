@@ -2,10 +2,10 @@ class GoogleMap
   #include Reloadable
   include UnbackedDomId
   attr_accessor :dom_id,
-                :markers,
-                :controls,
-                :inject_on_load,
-                :zoom
+    :markers,
+    :controls,
+    :inject_on_load,
+    :zoom
   
   def initialize(options = {})
     self.dom_id = 'google_map'
@@ -39,7 +39,11 @@ class GoogleMap
     js << "function initialize_google_map_#{dom_id}() {"
     js << "  if(GBrowserIsCompatible()) {"
     js << "    #{dom_id} = new GMap2(document.getElementById('#{dom_id}'));"
-    
+
+    js << " if (self['GoogleMapOnLoad']) {"
+#   added by Patrick to enable load functions
+    js << "#{dom_id}.load = GEvent.addListener(#{dom_id},'load',GoogleMapOnLoad)"
+    js << "}"
     js << '    ' + controls_js
     
     js << '    ' + center_on_markers_js
@@ -53,7 +57,6 @@ class GoogleMap
     end
     
     js << '    ' + inject_on_load.gsub("\n", "    \n") if inject_on_load
-    
     js << "  }"
     js << "}"
     
@@ -64,7 +67,7 @@ class GoogleMap
     js << "  old_before_google_map_#{dom_id} = window.onload;"
     js << "  window.onload = function() {" 
     js << "    old_before_google_map_#{dom_id}();"
-    js << "    initialize_google_map_#{dom_id}();" 
+    js << "    initialize_google_map_#{dom_id}();"
     js << "  }"
     js << "}"
     
@@ -87,14 +90,14 @@ class GoogleMap
     
     controls.each do |control|
       case control
-        when :large, :small, :overview
-          c = "G#{control.to_s.capitalize}MapControl"
-        when :scale
-          c = "GScaleControl"
-        when :type
-          c = "GMapTypeControl"
-        when :zoom
-          c = "GSmallZoomControl"
+      when :large, :small, :overview
+        c = "G#{control.to_s.capitalize}MapControl"
+      when :scale
+        c = "GScaleControl"
+      when :type
+        c = "GMapTypeControl"
+      when :zoom
+        c = "GSmallZoomControl"
       end
       js << "#{dom_id}.addControl(new #{c}());"
     end

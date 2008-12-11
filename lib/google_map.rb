@@ -41,7 +41,7 @@ class GoogleMap
     js << "    #{dom_id} = new GMap2(document.getElementById('#{dom_id}'));"
 
     js << " if (self['GoogleMapOnLoad']) {"
-#   added by Patrick to enable load functions
+    #   added by Patrick to enable load functions
     js << "#{dom_id}.load = GEvent.addListener(#{dom_id},'load',GoogleMapOnLoad)"
     js << "}"
     js << '    ' + controls_js
@@ -135,24 +135,27 @@ class GoogleMap
   
   # Creates a JS function that centers the map on its markers.
   def center_on_markers_function_js
-    return "#{dom_id}.setCenter(new GLatLng(0, 0), 0);" if markers.size == 0
-
-    for marker in markers
-      min_lat = marker.lat if !min_lat or marker.lat < min_lat
-      max_lat = marker.lat if !max_lat or marker.lat > max_lat
-      min_lng = marker.lng if !min_lng or marker.lng < min_lng
-      max_lng = marker.lng if !max_lng or marker.lng > max_lng
-    end
-
-    if self.zoom
-      zoom_js = zoom
+    if markers.size == 0
+      set_center_js = "#{dom_id}.setCenter(new GLatLng(0, 0), 0);"
     else
-      bounds_js = "new GLatLngBounds(new GLatLng(#{min_lat}, #{min_lng}), new GLatLng(#{max_lat}, #{max_lng}))"
-      zoom_js = "#{dom_id}.getBoundsZoomLevel(#{bounds_js})"
-    end
+
+      for marker in markers
+        min_lat = marker.lat if !min_lat or marker.lat < min_lat
+        max_lat = marker.lat if !max_lat or marker.lat > max_lat
+        min_lng = marker.lng if !min_lng or marker.lng < min_lng
+        max_lng = marker.lng if !max_lng or marker.lng > max_lng
+      end
+
+      if self.zoom
+        zoom_js = zoom
+      else
+        bounds_js = "new GLatLngBounds(new GLatLng(#{min_lat}, #{min_lng}), new GLatLng(#{max_lat}, #{max_lng}))"
+        zoom_js = "#{dom_id}.getBoundsZoomLevel(#{bounds_js})"
+      end
     
-    center_js = "new GLatLng(#{(min_lat + max_lat) / 2}, #{(min_lng + max_lng) / 2})"
-    set_center_js = "#{dom_id}.setCenter(#{center_js}, #{zoom_js});"
+      center_js = "new GLatLng(#{(min_lat + max_lat) / 2}, #{(min_lng + max_lng) / 2})"
+      set_center_js = "#{dom_id}.setCenter(#{center_js}, #{zoom_js});"
+    end
     
     return "function center_#{dom_id}() {\n  #{check_resize_js}\n  #{set_center_js}\n}"
   end

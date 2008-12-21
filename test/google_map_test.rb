@@ -6,10 +6,7 @@ class GoogleMapTest < Test::Unit::TestCase
   # Replace this with your real tests.
   def setup
     @map = GoogleMap.new
-    @marker = GoogleMapMarker.new(:map => @map, 
-                                  :lat => 40, 
-                                  :lng => -100,
-                                  :html => 'Test Marker')
+    @marker = marker_factory()
   end
 
   def test_new_map_has_empty_markers
@@ -33,8 +30,13 @@ class GoogleMapTest < Test::Unit::TestCase
 
   def test_center_on_markers_function_for_two_markers
     @map.markers << @marker
-    @map.markers << GoogleMapMarker.new(:map => @map, :lat => 40, :lng => 100, :html => 'Test Marker')
+    @map.markers << marker_factory({:lng => 100})
     assert @map.center_on_markers_function_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, 100))"
   end
   
+  def marker_factory(options = {})
+    params = {:map => @map, :lat => 40, :lng => -100, :html => 'Test Marker'}.merge(options)
+    GoogleMapMarker.new(params)
+  end
+
 end

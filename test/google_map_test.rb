@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/test_helper'
 
+GOOGLE_APPLICATION_ID = "ABQIAAAA3HdfrnxFAPWyY-aiJUxmqRTJQa0g3IQ9GZqIMmInSLzwtGDKaBQ0KYLwBEKSM7F9gCevcsIf6WPuIQ"
+
 class GoogleMapTest < Test::Unit::TestCase
   # Replace this with your real tests.
   def setup
@@ -16,6 +18,7 @@ class GoogleMapTest < Test::Unit::TestCase
                                         :lng => -122.318,
                                         :html => 'My House')
     assert_equal @map.markers.length, 1
+    assert @map.to_html.include? "google_map_marker_1 = new GMarker(new GLatLng(47.6597, -122.318));"
   end
 
 end

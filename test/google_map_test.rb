@@ -13,9 +13,11 @@ class GoogleMapTest < Test::Unit::TestCase
   end
 
   def test_add_markers
-    @map.markers << marker_factory
-    assert_equal @map.markers.length, 1
-    assert @map.to_html.include? "google_map_marker_1 = new GMarker(new GLatLng(40, -100));"
+    (1..5).each do |i|
+      @map.markers << marker_factory
+      assert_equal @map.markers.length, i
+      assert @map.to_html.include? "google_map_marker_#{i} = new GMarker(new GLatLng(40, -100));"
+    end
   end
   
   def test_center_on_markers_function_for_empty_map

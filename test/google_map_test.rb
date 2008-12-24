@@ -20,23 +20,23 @@ class GoogleMapTest < Test::Unit::TestCase
   end
   
   def test_center_on_markers_function_for_empty_map
-    assert @map.center_on_markers_function_js.include? "google_map.setCenter(new GLatLng(0, 0), 0);"
+    assert @map.center_map_js.include? "google_map.setCenter(new GLatLng(0, 0), 0);"
   end
 
   def test_center_on_markers_function_for_one_marker
     @map.markers << marker_factory
-    assert @map.center_on_markers_function_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, -100))"
+    assert @map.center_map_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, -100))"
   end
 
   def test_center_on_markers_function_for_two_markers
     @map.markers << marker_factory
     @map.markers << marker_factory({:lng => 100})
-    assert @map.center_on_markers_function_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, 100))"
+    assert @map.center_map_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, 100))"
   end
   
   def test_set_center_with_options
     @map = GoogleMap.new({:center => [10,10]})
-    assert @map.center_on_markers_function_js.include? "google_map.setCenter(new GLatLng(10, 10), 0);"
+    assert @map.center_map_js.include? "google_map.setCenter(new GLatLng(10, 10), 0);"
   end
 
 end

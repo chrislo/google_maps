@@ -5,7 +5,8 @@ class GoogleMap
     :markers,
     :controls,
     :inject_on_load,
-    :zoom
+    :zoom,
+    :center
   
   def initialize(options = {})
     self.dom_id = 'google_map'
@@ -34,7 +35,7 @@ class GoogleMap
     
     js << markers_functions_js
     
-    js << center_on_markers_function_js
+    js << center_map_js
     
     js << "function initialize_google_map_#{dom_id}() {"
     js << "  if(GBrowserIsCompatible()) {"
@@ -133,9 +134,13 @@ class GoogleMap
     return js.join("\n")
   end
   
-  # Creates a JS function that centers the map on its markers.
-  def center_on_markers_function_js
-    if markers.size == 0
+  # Creates a JS function that centers the map on the specified center
+  # location if given to the initialisers, or on the maps markers if they exist, or
+  # at (0,0) if not.
+  def center_map_js
+    if self.center
+      set_center_js = "#{dom_id}.setCenter(new GLatLng(#{@center[0]}, #{@center[1]}), 0);"
+    elsif markers.size == 0
       set_center_js = "#{dom_id}.setCenter(new GLatLng(0, 0), 0);"
     else
 

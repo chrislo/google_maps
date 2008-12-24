@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/test_helper'
 GOOGLE_APPLICATION_ID = "ABQIAAAA3HdfrnxFAPWyY-aiJUxmqRTJQa0g3IQ9GZqIMmInSLzwtGDKaBQ0KYLwBEKSM7F9gCevcsIf6WPuIQ"
 
 class GoogleMapTest < Test::Unit::TestCase
-  # Replace this with your real tests.
   def setup
     @map = GoogleMap.new
   end
@@ -35,4 +34,9 @@ class GoogleMapTest < Test::Unit::TestCase
     assert @map.center_on_markers_function_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, 100))"
   end
   
+  def test_set_center_with_options
+    @map = GoogleMap.new({:center => [10,10]})
+    assert @map.center_on_markers_function_js.include? "google_map.setCenter(new GLatLng(10, 10), 0);"
+  end
+
 end

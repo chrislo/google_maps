@@ -35,9 +35,4 @@ class GoogleMapTest < Test::Unit::TestCase
     assert @map.center_on_markers_function_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, 100))"
   end
   
-  def marker_factory(options = {})
-    params = {:map => @map, :lat => 40, :lng => -100, :html => 'Test Marker'}.merge(options)
-    GoogleMapMarker.new(params)
-  end
-
 end

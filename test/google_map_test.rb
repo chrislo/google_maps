@@ -36,7 +36,9 @@ class GoogleMapTest < Test::Unit::TestCase
   
   def test_set_center_with_options
     @map = GoogleMap.new({:center => [10,10]})
-    assert @map.center_map_js.include? "google_map.setCenter(new GLatLng(10, 10), 0);"
+    @map.markers << marker_factory
+    puts @map.center_map_js
+    assert @map.center_map_js.include? "new GLatLng(10, 10)"
   end
 
 end

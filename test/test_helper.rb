@@ -1,8 +1,15 @@
 ENV['RAILS_ENV'] = 'test'
-ENV['RAILS_ROOT'] ||= File.dirname(__FILE__) + '/../../../..'
 
 require 'test/unit'
-require File.expand_path(File.join(ENV['RAILS_ROOT'], 'config/environment.rb'))
+require 'rubygems'
+require 'actionpack'
+require 'action_view'
+require 'lib/unbacked_dom_id'
+require 'lib/google_map_icon'
+require 'lib/google_map_letter_icon'
+require 'lib/google_map_marker'
+require 'lib/google_map'
+require 'lib/google_map_small_icon'
 
 def marker_factory(options = {})
   params = {:map => @map, :lat => 40, :lng => -100, :html => 'Test Marker'}.merge(options)

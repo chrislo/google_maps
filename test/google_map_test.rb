@@ -20,18 +20,18 @@ class GoogleMapTest < Test::Unit::TestCase
   end
   
   def test_center_on_markers_function_for_empty_map
-    assert @map.center_map_js.include? "google_map.setCenter(new GLatLng(0, 0), 0);"
+    assert @map.center_map_js.include? "google_map.setCenter(google_map_latlng_bounds.getCenter(), google_map.getBoundsZoomLevel(google_map_latlng_bounds));"
   end
 
   def test_center_on_markers_function_for_one_marker
     @map.markers << marker_factory
-    assert @map.center_map_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, -100))"
+    assert @map.center_map_js.include? "google_map_latlng_bounds.extend(new GLatLng(40, -100));"
   end
 
   def test_center_on_markers_function_for_two_markers
     @map.markers << marker_factory
     @map.markers << marker_factory({:lng => 100})
-    assert @map.center_map_js.include? "new GLatLngBounds(new GLatLng(40, -100), new GLatLng(40, 100))"
+    assert @map.center_map_js.include? "google_map_latlng_bounds.extend(new GLatLng(40, 100));"
   end
   
   def test_set_center_with_options
@@ -40,4 +40,20 @@ class GoogleMapTest < Test::Unit::TestCase
     assert @map.center_map_js.include? "new GLatLng(10, 10)"
   end
 
+  def test_add_polylines
+    
+    (1..5).each do |i|
+      @map.overlays << polyline_factory
+      assert_equal @map.overlays.length, i
+      assert @map.to_html.include? "#{@map.overlays[i - 1].dom_id} = new GPolyline(#{@map.overlays[i - 1].dom_id}_vertices, '#00FF00', 10, 2);"
+    end
+  end
+  
+  def test_add_geoxml
+    (1..5).each do |i|
+      @map.overlays << geoxml_factory
+      assert_equal @map.overlays.length, i
+      assert @map.to_html.include? "#{@map.overlays[i - 1].dom_id} = new GGeoXml('http://code.google.com/apis/kml/documentation/KML_Samples.kml')";
+    end
+  end
 end

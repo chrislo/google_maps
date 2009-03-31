@@ -3,15 +3,25 @@ class GoogleMap
   include UnbackedDomId
   attr_accessor :dom_id,
     :markers,
+    :overlays,
     :controls,
     :inject_on_load,
     :zoom,
-    :center
+    :center,
+    :double_click_zoom,
+    :continuous_zoom,
+    :scroll_wheel_zoom,
+    :bounds
   
   def initialize(options = {})
     self.dom_id = 'google_map'
     self.markers = []
+    self.overlays = []
+    self.bounds = []
     self.controls = [ :zoom, :overview, :scale, :type ]
+    self.double_click_zoom = true
+    self.continuous_zoom = false
+    self.scroll_wheel_zoom = false
     options.each_pair { |key, value| send("#{key}=", value) }
   end
   
@@ -26,6 +36,10 @@ class GoogleMap
     return html.join("\n")
   end
 
+  def to_enable_prefix true_or_false
+    true_or_false ? "enable" : "disable"
+  end
+  
   def to_js
     js = []
     
@@ -47,15 +61,24 @@ class GoogleMap
     js << "}"
     js << '    ' + controls_js
     
-    js << '    ' + center_on_markers_js
+    js << '    ' + center_on_bounds_js
     
     js << '    ' + markers_icons_js
-    
+        
     # Put all the markers on the map.
     for marker in markers
       js << '    ' + marker.to_js
       js << ''
     end
+    
+    overlays.each do |overlay|
+      js << overlay.to_js
+      js << "#{dom_id}.addOverlay(#{overlay.dom_id});"  
+    end
+
+    js << "#{dom_id}.#{to_enable_prefix double_click_zoom}DoubleClickZoom();"
+    js << "#{dom_id}.#{to_enable_prefix continuous_zoom}ContinuousZoom();"
+    js << "#{dom_id}.#{to_enable_prefix scroll_wheel_zoom}ScrollWheelZoom();"
     
     js << '    ' + inject_on_load.gsub("\n", "    \n") if inject_on_load
     js << "  }"
@@ -82,7 +105,7 @@ class GoogleMap
     #js << "    GUnload();" 
     #js << "  }"
     #js << "}"
-        
+            
     return js.join("\n")
   end
   
@@ -93,12 +116,22 @@ class GoogleMap
       case control
       when :large, :small, :overview
         c = "G#{control.to_s.capitalize}MapControl"
+      when :large_3d
+        c = "GLargeMapControl3D"
       when :scale
         c = "GScaleControl"
       when :type
         c = "GMapTypeControl"
+      when :menu_type
+        c = "GMenuMapTypeControl"
+      when :hierachical_type
+        c = "GHierarchicalMapTypeControl"
       when :zoom
         c = "GSmallZoomControl"
+      when :zoom_3d
+        c = "GSmallZoomControl3D"
+      when :nav_label
+        c = "GNavLabelControl"
       end
       js << "#{dom_id}.addControl(new #{c}());"
     end
@@ -133,52 +166,59 @@ class GoogleMap
     
     return js.join("\n")
   end
-  
+    
   # Creates a JS function that centers the map on the specified center
   # location if given to the initialisers, or on the maps markers if they exist, or
   # at (0,0) if not.
   def center_map_js
-    if markers.size == 0
-      set_center_js = "#{dom_id}.setCenter(new GLatLng(0, 0), 0);"
+    
+    if self.zoom
+      zoom_js = zoom
     else
-
-      if self.center
-        max_lat = @center[0] + 0.05
-        min_lat = @center[0] - 0.05
-        max_lng = @center[1] + 0.05
-        min_lng = @center[1] - 0.05
-
-        center_js = "new GLatLng(#{center[0]}, #{center[1]})"
-      else
-        for marker in markers
-          min_lat = marker.lat if !min_lat or marker.lat < min_lat
-          max_lat = marker.lat if !max_lat or marker.lat > max_lat
-          min_lng = marker.lng if !min_lng or marker.lng < min_lng
-          max_lng = marker.lng if !max_lng or marker.lng > max_lng
-
-          center_js = "new GLatLng(#{(min_lat + max_lat) / 2}, #{(min_lng + max_lng) / 2})"
-        end
-      end
-      
-      if self.zoom
-        zoom_js = zoom
-      else
-        bounds_js = "new GLatLngBounds(new GLatLng(#{min_lat}, #{min_lng}), new GLatLng(#{max_lat}, #{max_lng}))"
-        zoom_js = "#{dom_id}.getBoundsZoomLevel(#{bounds_js})"
-      end
-
-      set_center_js = "#{dom_id}.setCenter(#{center_js}, #{zoom_js});"
+      zoom_js = "#{dom_id}.getBoundsZoomLevel(#{dom_id}_latlng_bounds)"
     end
 
-    return "function center_#{dom_id}() {\n  #{check_resize_js}\n  #{set_center_js}\n}"
-
+    set_center_js = []
+    
+    if self.center
+      set_center_js << "#{dom_id}.setCenter(new GLatLng(#{center[0]}, #{center[1]}), #{zoom_js});"
+    else  
+      
+      synch_bounds
+      
+      set_center_js << "var #{dom_id}_latlng_bounds = new GLatLngBounds();"
+    
+      bounds.each do |latlng|
+        set_center_js << "#{dom_id}_latlng_bounds.extend(new GLatLng(#{latlng[0]}, #{latlng[1]}));"
+      end  
+    
+      set_center_js << "#{dom_id}.setCenter(#{dom_id}_latlng_bounds.getCenter(), #{zoom_js});"
+    end
+    
+    "function center_#{dom_id}() {\n  #{check_resize_js}\n  #{set_center_js.join "\n"}\n}"
+  end
+  
+  def synch_bounds
+    
+    overlays.each do |overlay|
+      
+      if overlay.is_a? GoogleMapPolyline
+        bounds << overlay.vertices
+      end
+    end
+    
+    markers.each do |marker|
+      bounds << [marker.lat, marker.lng]
+    end    
+    
+    bounds.uniq!
   end
   
   def check_resize_js
     return "#{dom_id}.checkResize();"
   end
   
-  def center_on_markers_js
+  def center_on_bounds_js
     return "center_#{dom_id}();"
   end
   
